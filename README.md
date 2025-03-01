@@ -1,181 +1,185 @@
-MDA Data Integration POC 🚀
+```markdown
+# MDA Data Integration POC 🚀
 
-Overview
+## Overview
 
 The Multi-Agency Data (MDA) Integration Proof of Concept (POC) is a secure, scalable solution designed to facilitate inter-agency data exchange using modern cloud-based technologies. This project demonstrates a decentralized data-sharing architecture with a focus on security, reliability, and real-time data processing.
 
-Tech Stack
+## Tech Stack
 
-Backend
+### Backend
 
-FastAPI (High-performance Python framework for APIs)
+- **FastAPI** (High-performance Python framework for APIs)
+- **SQLAlchemy & Alembic** (ORM & database migrations)
+- **PostgreSQL & SQLite** (Database for persistent and mock data storage)
+- **JWT Authentication** (Secure token-based authentication)
+- **Pydantic** (Data validation and serialization)
 
-SQLAlchemy & Alembic (ORM & database migrations)
+### Message Broker & Async Processing
 
-PostgreSQL & SQLite (Database for persistent and mock data storage)
+- **RabbitMQ** (Event-driven messaging for inter-agency data exchange)
+- **Celery** (Asynchronous task processing for data ingestion & transformation)
 
-JWT Authentication (Secure token-based authentication)
+### Frontend (Coming Soon)
 
-Pydantic (Data validation and serialization)
+- **React.js** (Admin dashboard for monitoring integrations & analytics)
+- **Material UI** (Modern UI components)
+- **Redux Toolkit** (State management)
 
-Message Broker & Async Processing
+### Cloud & Infrastructure
 
-RabbitMQ (Event-driven messaging for inter-agency data exchange)
+- **AWS (Free Tier for POC):**
+  - **EC2** (Compute instance for hosting the backend API)
+  - **RDS (PostgreSQL)** (Managed database service for production data storage)
+  - **S3** (Storage for logs and static assets)
+  - **SQS** (Alternative to RabbitMQ for message queuing)
+  - **IAM Roles & Policies** (Access control & security)
+  - **CloudWatch** (Logging & monitoring)
+  - **Route 53** (Custom domain management)
 
-Celery (Asynchronous task processing for data ingestion & transformation)
-
-Frontend (Coming Soon)
-
-React.js (Admin dashboard for monitoring integrations & analytics)
-
-Material UI (Modern UI components)
-
-Redux Toolkit (State management)
-
-Cloud & Infrastructure
-
-AWS (Free Tier for POC):
-
-EC2 (Compute instance for hosting the backend API)
-
-RDS (PostgreSQL) (Managed database service for production data storage)
-
-S3 (Storage for logs and static assets)
-
-SQS (Alternative to RabbitMQ for message queuing)
-
-IAM Roles & Policies (Access control & security)
-
-CloudWatch (Logging & monitoring)
-
-Route 53 (Custom domain management)
-
-Architecture
+## Architecture
 
 This system follows a microservices-inspired architecture, where different agencies interact securely without exposing direct database access.
 
-High-Level Workflow
+### High-Level Workflow
 
-Agency A submits a data request via a FastAPI endpoint.
+1. Agency A submits a data request via a FastAPI endpoint.
+2. The request is authenticated using JWT tokens.
+3. The API interacts with PostgreSQL for data retrieval/storage.
+4. If the request requires asynchronous processing, it is sent to RabbitMQ.
+5. A Celery worker processes the request and sends back the response.
+6. Agency B receives the processed data through a secure API.
+7. All requests and transactions are logged in AWS CloudWatch & S3 for auditing.
 
-The request is authenticated using JWT tokens.
+## Installation & Setup
 
-The API interacts with PostgreSQL for data retrieval/storage.
+### 1. Clone the Repository
 
-If the request requires asynchronous processing, it is sent to RabbitMQ.
-
-A Celery worker processes the request and sends back the response.
-
-Agency B receives the processed data through a secure API.
-
-All requests and transactions are logged in AWS CloudWatch & S3 for auditing.
-
-Installation & Setup
-
-1. Clone the Repository
-
+```bash
 git clone https://github.com/YOUR_GITHUB_USERNAME/mda-data-integration-poc.git
 cd mda-data-integration-poc
+```
 
-2. Set Up Virtual Environment
+### 2. Set Up Virtual Environment
 
+```bash
 python -m venv env
 source env/bin/activate  # On Windows: env\Scripts\activate
+```
 
-3. Install Dependencies
+### 3. Install Dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
-4. Configure Environment Variables
+### 4. Configure Environment Variables
 
-Create a .env file with the following variables:
+Create a `.env` file with the following variables:
 
+```env
 DATABASE_URL=postgresql+asyncpg://user:password@localhost/mda_db
 JWT_SECRET_KEY=your_secret_key
 RABBITMQ_URL=amqp://guest:guest@localhost/
+```
 
-5. Run Database Migrations
+### 5. Run Database Migrations
 
+```bash
 alembic upgrade head
+```
 
-6. Start the API Server
+### 6. Start the API Server
 
+```bash
 uvicorn main:app --reload
+```
 
 The API will be available at: http://localhost:8000
 
-7. Start RabbitMQ & Celery
+### 7. Start RabbitMQ & Celery
 
+```bash
 docker-compose up -d  # Starts RabbitMQ & Celery in the background
 celery -A worker.tasks worker --loglevel=info
+```
 
-API Endpoints
+## API Endpoints
 
-Authentication
+### Authentication
 
-POST /auth/login - User login & JWT token generation
+- **POST /auth/login** - User login & JWT token generation
+- **POST /auth/register** - Register a new agency user
 
-POST /auth/register - Register a new agency user
+### Birth Records API
 
-Birth Records API
+- **GET /birth_records** - Fetch all birth records
+- **POST /birth_records** - Add a new birth record
 
-GET /birth_records - Fetch all birth records
+### Agency Data Exchange
 
-POST /birth_records - Add a new birth record
+- **POST /data/request** - Submit a data request to another agency
+- **GET /data/status/{request_id}** - Check the status of a data request
 
-Agency Data Exchange
+## Cloud Deployment Guide (AWS)
 
-POST /data/request - Submit a data request to another agency
+### 1. Set Up EC2 Instance
 
-GET /data/status/{request_id} - Check the status of a data request
+1. Create an EC2 instance (t2.micro, Ubuntu 22.04)
+2. Install required dependencies:
 
-Cloud Deployment Guide (AWS)
-
-1. Set Up EC2 Instance
-
-Create an EC2 instance (t2.micro, Ubuntu 22.04)
-
-Install required dependencies:
-
+```bash
 sudo apt update && sudo apt install python3-pip nginx docker-compose
+```
 
-2. Deploy FastAPI on EC2
+### 2. Deploy FastAPI on EC2
 
-Copy project files to the EC2 instance:
+1. Copy project files to the EC2 instance:
 
+```bash
 scp -r mda-data-integration-poc ubuntu@your-ec2-ip:/home/ubuntu/
+```
 
-SSH into the EC2 instance:
+2. SSH into the EC2 instance:
 
+```bash
 ssh ubuntu@your-ec2-ip
+```
 
-Start the application:
+3. Start the application:
 
+```bash
 cd mda-data-integration-poc
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-3. Set Up PostgreSQL on AWS RDS
+### 3. Set Up PostgreSQL on AWS RDS
 
-Create an RDS PostgreSQL instance.
+1. Create an RDS PostgreSQL instance.
+2. Update `DATABASE_URL` in the `.env` file to point to the RDS instance.
+3. Apply migrations:
 
-Update DATABASE_URL in the .env file to point to the RDS instance.
-
-Apply migrations:
-
+```bash
 alembic upgrade head
+```
 
-4. Configure Nginx as a Reverse Proxy
+### 4. Configure Nginx as a Reverse Proxy
 
-Install Nginx:
+1. Install Nginx:
 
+```bash
 sudo apt install nginx
+```
 
-Edit the Nginx config:
+2. Edit the Nginx config:
 
+```bash
 sudo nano /etc/nginx/sites-available/mda
+```
 
-Add the following:
+3. Add the following:
 
+```nginx
 server {
     listen 80;
     server_name your-domain.com;
@@ -186,40 +190,38 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
+```
 
-Enable and restart Nginx:
+4. Enable and restart Nginx:
 
+```bash
 sudo ln -s /etc/nginx/sites-available/mda /etc/nginx/sites-enabled/
 sudo systemctl restart nginx
+```
 
-Security Considerations
+## Security Considerations
 
-JWT authentication ensures that only authorized users can access the system.
+- JWT authentication ensures that only authorized users can access the system.
+- IAM roles and security groups restrict access to AWS resources.
+- HTTPS (TLS/SSL) encryption is enforced for all communication.
+- Logging & Monitoring via AWS CloudWatch and S3 ensure traceability.
 
-IAM roles and security groups restrict access to AWS resources.
+## Future Enhancements
 
-HTTPS (TLS/SSL) encryption is enforced for all communication.
+- Kubernetes Deployment (EKS on AWS)
+- Data Transformation Pipeline (ETL using AWS Lambda & Glue)
+- GraphQL Support for flexible queries
+- Full Frontend Dashboard (React.js + Redux)
 
-Logging & Monitoring via AWS CloudWatch and S3 ensure traceability.
+## Contributors
 
-Future Enhancements
+- **Your Name** - Mesfin Githinji
 
-Kubernetes Deployment (EKS on AWS)
-
-Data Transformation Pipeline (ETL using AWS Lambda & Glue)
-
-GraphQL Support for flexible queries
-
-Full Frontend Dashboard (React.js + Redux)
-
-Contributors
-
-Your Name - Backend Engineer
-
-Other Team Members (If any)
-
-License
+## License
 
 This project is licensed under the MIT License.
 
-🚀 MDA Data Integration POC - Enabling Secure & Scalable Inter-Agency Data Sharing 🚀
+---
+
+🚀 **MDA Data Integration POC - Enabling Secure & Scalable Inter-Agency Data Sharing** 🚀
+```
